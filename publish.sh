@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 #
-# publish.sh — Maana journey map
+# publish.sh — Maana marketing dashboards
 #
 #   bash publish.sh
 #   bash publish.sh "Added GEO and PR to Discover"
 #
-# Rebuilds the encrypted page, commits it, pushes it. That's the whole job.
+# Rebuilds the encrypted hub, commits it, pushes it. That's the whole job.
+#
+# To add a dashboard: drop the .html in this folder, add a line to PAGES at the
+# top of publish-maana-marketing.mjs, add the filename to .gitignore, re-run.
 #
 set -euo pipefail
 cd "$(dirname "$0")"
 
-MSG="${1:-Update journey map}"
-SITE="https://viola-creator.github.io/journey/"
+MSG="${1:-Update marketing dashboards}"
+SITE="https://viola-creator.github.io/maana-marketing/"
 
 say() { printf "\n\033[1m%s\033[0m\n" "$1"; }
 
@@ -27,23 +30,29 @@ if [ -f .git/index.lock ]; then
 fi
 
 # ── 2. Sanity checks ─────────────────────────────────────────────────────────
-if [ ! -f maana-journey-map.html ]; then
-  echo "✖ maana-journey-map.html is missing from this folder. Nothing to publish."
-  exit 1
-fi
 if ! command -v node >/dev/null 2>&1; then
   echo "✖ Node isn't on your PATH. Install it, or open a new terminal window."
   exit 1
 fi
 
-# ── 3. Rebuild the encrypted page ────────────────────────────────────────────
+# Refuse to run if a source file would be published in the clear.
+for f in maana-journey-map.html "annex-list-all_0803.html" "Weekly Sales Report.html"; do
+  if [ -f "$f" ] && ! git check-ignore -q "$f"; then
+    echo "✖ \"$f\" is NOT gitignored — it would be pushed to GitHub as readable text."
+    echo "  Add this line to .gitignore, then re-run:"
+    echo "      $f"
+    exit 1
+  fi
+done
+
+# ── 3. Rebuild the encrypted hub ─────────────────────────────────────────────
 say "Encrypting"
 export MAANA_IN_WRAPPER=1
-node publish-journey-map.mjs
+node publish-maana-marketing.mjs
 
 # ── 4. Stage only what belongs to this job ───────────────────────────────────
 say "Committing"
-git add journey/ .gitignore publish-journey-map.mjs publish.sh
+git add maana-marketing/ journey/ .gitignore publish-maana-marketing.mjs redactions.mjs publish.sh
 
 if git diff --cached --quiet; then
   echo "· Nothing to commit — already up to date."
