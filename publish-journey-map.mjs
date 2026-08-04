@@ -176,17 +176,17 @@ writeFileSync(OUT, page);
 
 const kb = n => (n / 1024).toFixed(0) + ' KB';
 console.log(`
-✓ Encrypted and published
+✓ Encrypted  ·  ${kb(plaintext.length)} in, ${kb(Buffer.byteLength(page))} out
+  ${OUT}
+  AES-256-GCM · PBKDF2-SHA256 · ${ITER.toLocaleString()} rounds`);
 
-  source      ${IN}  (${kb(plaintext.length)})
-  published   ${OUT}  (${kb(Buffer.byteLength(page))})
-  cipher      AES-256-GCM · PBKDF2-SHA256 · ${ITER.toLocaleString()} rounds
-
+if (!process.env.MAANA_IN_WRAPPER) console.log(`
   Next:
-    git add journey/index.html .gitignore publish-journey-map.mjs
+    git add journey/ .gitignore publish-journey-map.mjs
     git commit -m "Update journey map"
     git push
 
   Live in 2–5 min at:
     https://viola-creator.github.io/journey/
 `);
+else console.log('');
